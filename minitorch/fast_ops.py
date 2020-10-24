@@ -297,7 +297,17 @@ def tensor_matrix_multiply(
     """
 
     # TODO: Implement for Task 3.2.
-    raise NotImplementedError('Need to implement for Task 3.2')
+    print(
+        out,
+        out_shape,
+        out_strides,
+        a_storage,
+        a_shape,
+        a_strides,
+        b_storage,
+        b_shape,
+        b_strides,
+    )
 
 
 def matrix_multiply(a, b):
