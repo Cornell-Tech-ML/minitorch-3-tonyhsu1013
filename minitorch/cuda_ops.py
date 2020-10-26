@@ -45,17 +45,15 @@ def tensor_map(fn):
         # Find my position.
         x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
 
-        out_index = []
-        in_index = []
-        for i in range(MAX_DIMS):
-            out_index.append(0)
-            in_index.append(0)
+        out_index = np.empty(MAX_DIMS, np.int32)
+        in_index = np.empty(MAX_DIMS, np.int32)
 
-        count(int(x), out_shape, out_index)
-        broadcast_index(out_index, out_shape, in_shape, in_index)
-        o = index_to_position(out_index, out_strides)
-        j = index_to_position(in_index, in_strides)
-        out[o] = fn(in_storage[j])
+        if x < out_size:
+            count(x, out_shape, out_index)
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            o = index_to_position(out_index, out_strides)
+            j = index_to_position(in_index, in_strides)
+            out[o] = fn(in_storage[j])
 
     return cuda.jit()(_map)
 

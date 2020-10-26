@@ -40,8 +40,8 @@ def tensor_map(fn):
     def _map(out, out_shape, out_strides, in_storage, in_shape, in_strides):
         # TODO: Implement for Task 3.1.
         for i in prange(len(out)):
-            out_index = np.zeros(MAX_DIMS, np.int32)
-            in_index = np.zeros(MAX_DIMS, np.int32)
+            out_index = np.empty(MAX_DIMS, np.int32)
+            in_index = np.empty(MAX_DIMS, np.int32)
             count(int(i), out_shape, out_index)
             broadcast_index(out_index, out_shape, in_shape, in_index)
             o = index_to_position(out_index, out_strides)
