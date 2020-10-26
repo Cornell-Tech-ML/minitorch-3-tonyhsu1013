@@ -45,8 +45,8 @@ def tensor_map(fn):
         # Find my position.
         x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
 
-        out_index = np.empty(MAX_DIMS, np.int32)
-        in_index = np.empty(MAX_DIMS, np.int32)
+        out_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+        in_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
 
         if x < out_size:
             count(x, out_shape, out_index)
@@ -112,7 +112,20 @@ def tensor_zip(fn):
         b_strides,
     ):
         # TODO: Implement for Task 3.3.
-        raise NotImplementedError('Need to implement for Task 3.3')
+        x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+
+        out_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+        a_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+        b_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+
+        if x < out_size:
+            count(x, out_shape, out_index)
+            o = index_to_position(out_index, out_strides)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            j = index_to_position(a_index, a_strides)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            k = index_to_position(b_index, b_strides)
+            out[o] = fn(a_storage[j], b_storage[k])
 
     return cuda.jit()(_zip)
 
@@ -165,7 +178,21 @@ def tensor_reduce(fn):
         reduce_size,
     ):
         # TODO: Implement for Task 3.3.
-        raise NotImplementedError('Need to implement for Task 3.3')
+        x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+        out_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+        a_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+
+        if x < out_size:
+            count(x, out_shape, out_index)
+            o = index_to_position(out_index, out_strides)
+
+            for s in range(reduce_size):
+                count(s, reduce_shape, a_index)
+                for k in range(len(reduce_shape)):
+                    if reduce_shape[k] != 1:
+                        out_index[k] = a_index[k]
+                j = index_to_position(out_index, a_strides)
+                out[o] = fn(out[o], a_storage[j])
 
     return cuda.jit()(_reduce)
 
