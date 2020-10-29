@@ -297,17 +297,9 @@ def tensor_matrix_multiply(
     """
 
     # TODO: Implement for Task 3.2.
-    # print(
-    #     out,
-    #     out_shape,
-    #     out_strides,
-    #     a_storage,
-    #     a_shape,
-    #     a_strides,
-    #     b_storage,
-    #     b_shape,
-    #     b_strides,
-    # )
+    a_num_positions = len(a_shape)
+    b_num_positions = len(b_shape)
+    out_num_positions = len(out_shape)
     for i in range(len(out)):
         out_index = np.empty(MAX_DIMS, np.int32)
         a_index = np.empty(MAX_DIMS, np.int32)
@@ -315,13 +307,14 @@ def tensor_matrix_multiply(
         count(int(i), out_shape, out_index)
         o = index_to_position(out_index, out_strides)
 
-        count(0, a_shape, a_index)
-        count(0, b_shape, b_index)
-        a_index[-2] = out_index[-2]
-        b_index[-1] = out_index[-1]
+
+        broadcast_index(out_index, out_shape, a_shape, a_index)
+        broadcast_index(out_index, out_shape, b_shape, b_index)
+        a_index[a_num_positions-2] = out_index[out_num_positions-2]
+        b_index[b_num_positions-1] = out_index[out_num_positions-1]
         for s in range(a_shape[-1]):
-            a_index[-1] = s
-            b_index[-2] = s
+            a_index[a_num_positions-1] = s
+            b_index[b_num_positions-2] = s
             j = index_to_position(a_index, a_strides)
             k = index_to_position(b_index, b_strides)
             out[o] += a_storage[j] * b_storage[k]
