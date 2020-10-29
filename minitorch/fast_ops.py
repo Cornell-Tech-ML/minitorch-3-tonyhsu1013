@@ -297,17 +297,35 @@ def tensor_matrix_multiply(
     """
 
     # TODO: Implement for Task 3.2.
-    print(
-        out,
-        out_shape,
-        out_strides,
-        a_storage,
-        a_shape,
-        a_strides,
-        b_storage,
-        b_shape,
-        b_strides,
-    )
+    # print(
+    #     out,
+    #     out_shape,
+    #     out_strides,
+    #     a_storage,
+    #     a_shape,
+    #     a_strides,
+    #     b_storage,
+    #     b_shape,
+    #     b_strides,
+    # )
+    for i in range(len(out)):
+        out_index = np.empty(MAX_DIMS, np.int32)
+        a_index = np.empty(MAX_DIMS, np.int32)
+        b_index = np.empty(MAX_DIMS, np.int32)
+        count(int(i), out_shape, out_index)
+        o = index_to_position(out_index, out_strides)
+
+        count(0, a_shape, a_index)
+        count(0, b_shape, b_index)
+        a_index[-2] = out_index[-2]
+        b_index[-1] = out_index[-1]
+        for s in range(a_shape[-1]):
+            a_index[-1] = s
+            b_index[-2] = s
+            j = index_to_position(a_index, a_strides)
+            k = index_to_position(b_index, b_strides)
+            out[o] += a_storage[j] * b_storage[k]
+
 
 
 def matrix_multiply(a, b):
@@ -328,9 +346,12 @@ def matrix_multiply(a, b):
     """
 
     # Create out shape
-    ls = list(a.shape)
+    # START CODE CHANGE
+    ls = list(shape_broadcast(a.shape[:-2], b.shape[:-2]))
+    ls.append(a.shape[-2])
+    ls.append(b.shape[-1])
     assert a.shape[-1] == b.shape[-2]
-    ls[-1] = b.shape[-1]
+    # END CODE CHANGE
     out = a.zeros(tuple(ls))
 
     # Call main function

@@ -48,7 +48,7 @@ def count(position, shape, out_index):
 
     """
     # TODO: Implement for Task 2.1.
-    cur_pos = position
+    cur_pos = position + 0
     for i in range(len(shape) - 1, -1, -1):
         sh = shape[i]
         out_index[i] = int(cur_pos % sh)
