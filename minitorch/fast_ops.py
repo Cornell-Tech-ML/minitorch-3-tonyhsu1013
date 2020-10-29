@@ -300,7 +300,7 @@ def tensor_matrix_multiply(
     a_num_positions = len(a_shape)
     b_num_positions = len(b_shape)
     out_num_positions = len(out_shape)
-    for i in range(len(out)):
+    for i in prange(len(out)):
         out_index = np.empty(MAX_DIMS, np.int32)
         a_index = np.empty(MAX_DIMS, np.int32)
         b_index = np.empty(MAX_DIMS, np.int32)
