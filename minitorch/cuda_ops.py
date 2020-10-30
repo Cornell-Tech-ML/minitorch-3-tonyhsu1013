@@ -49,7 +49,7 @@ def tensor_map(fn):
         in_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
 
         if x < out_size:
-            count(x, out_shape, out_index)
+            count(int(x), out_shape, out_index)
             broadcast_index(out_index, out_shape, in_shape, in_index)
             o = index_to_position(out_index, out_strides)
             j = index_to_position(in_index, in_strides)
@@ -119,7 +119,7 @@ def tensor_zip(fn):
         b_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
 
         if x < out_size:
-            count(x, out_shape, out_index)
+            count(int(x), out_shape, out_index)
             o = index_to_position(out_index, out_strides)
             broadcast_index(out_index, out_shape, a_shape, a_index)
             j = index_to_position(a_index, a_strides)
