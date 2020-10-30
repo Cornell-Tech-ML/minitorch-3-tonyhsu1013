@@ -273,7 +273,7 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
                 def transpose_matrix(matrix):
                     dimension_order = list(range(matrix.dims))
                     dimension_order[-1], dimension_order[-2] = dimension_order[-2], dimension_order[-1]
-                    new_matrix = matrix.permute(*order)
+                    new_matrix = matrix.permute(*dimension_order)
                     return new_matrix
                 t1, t2 = ctx.saved_values
 
