@@ -104,7 +104,7 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
             def backward(ctx, grad_output):
                 # TODO: Implement for Task 2.3.
                 a, b = ctx.saved_values
-                return mul_zip(grad_output, b), mul_zip(a, grad_output)
+                return mul_zip(b, grad_output), mul_zip(a, grad_output)
 
         class Sigmoid(Function):
             @staticmethod
