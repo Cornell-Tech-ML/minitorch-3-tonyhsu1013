@@ -266,7 +266,7 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
             @staticmethod
             def forward(ctx, t1, t2):
                 ctx.save_for_backward(t1, t2)
-                return FastOps.matrix_multiply(t1, t2)
+                return tensor_ops.matrix_multiply(t1, t2)
 
             @staticmethod
             def backward(ctx, grad_output):
@@ -278,8 +278,8 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
                 t1, t2 = ctx.saved_values
 
                 return (
-                    FastOps.matrix_multiply(grad_output, transpose_matrix(t2)),
-                    FastOps.matrix_multiply(transpose_matrix(t1), grad_output),
+                    tensor_ops.matrix_multiply(grad_output, transpose_matrix(t2)),
+                    tensor_ops.matrix_multiply(transpose_matrix(t1), grad_output),
                 )
 
     return Backend
