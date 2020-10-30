@@ -270,16 +270,16 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
 
             @staticmethod
             def backward(ctx, grad_output):
+                def transpose_matrix(matrix):
+                    dimension_order = list(range(matrix.dims))
+                    dimension_order[-1], dimension_order[-2] = dimension_order[-2], dimension_order[-1]
+                    new_matrix = matrix.permute(*order)
+                    return new_matrix
                 t1, t2 = ctx.saved_values
 
-                def transpose(a):
-                    order = list(range(a.dims))
-                    order[-2], order[-1] = order[-1], order[-2]
-                    return a.permute(*order)
-
                 return (
-                    FastOps.matrix_multiply(grad_output, transpose(t2)),
-                    FastOps.matrix_multiply(transpose(t1), grad_output),
+                    FastOps.matrix_multiply(grad_output, transpose_matrix(t2)),
+                    FastOps.matrix_multiply(transpose_matrix(t1), grad_output),
                 )
 
     return Backend

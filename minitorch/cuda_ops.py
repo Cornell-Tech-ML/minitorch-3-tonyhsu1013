@@ -275,7 +275,28 @@ def tensor_matrix_multiply(
     """
 
     # TODO: Implement for Task 3.4.
-    raise NotImplementedError('Need to implement for Task 3.4')
+    x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+
+    a_num_positions = len(a_shape)
+    b_num_positions = len(b_shape)
+    out_num_positions = len(out_shape)
+
+    out_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+    a_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+    b_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+    count(x, out_shape, out_index)
+    o = index_to_position(out_index, out_strides)
+
+    broadcast_index(out_index, out_shape, a_shape, a_index)
+    broadcast_index(out_index, out_shape, b_shape, b_index)
+    a_index[a_num_positions-2] = out_index[out_num_positions-2]
+    b_index[b_num_positions-1] = out_index[out_num_positions-1]
+    for s in range(a_shape[-1]):
+        a_index[a_num_positions-1] = s
+        b_index[b_num_positions-2] = s
+        j = index_to_position(a_index, a_strides)
+        k = index_to_position(b_index, b_strides)
+        out[o] += a_storage[j] * b_storage[k]
 
 
 def matrix_multiply(a, b):
