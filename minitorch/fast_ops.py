@@ -307,7 +307,6 @@ def tensor_matrix_multiply(
         count(int(i), out_shape, out_index)
         o = index_to_position(out_index, out_strides)
 
-
         broadcast_index(out_index, out_shape, a_shape, a_index)
         broadcast_index(out_index, out_shape, b_shape, b_index)
         a_index[a_num_positions-2] = out_index[out_num_positions-2]

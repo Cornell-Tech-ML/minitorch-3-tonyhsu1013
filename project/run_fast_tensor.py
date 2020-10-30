@@ -75,7 +75,7 @@ class Linear(minitorch.Module):
     def forward(self, x):
         # TODO: Implement for Task 3.5.
         batch, in_size = x.shape
-        return (self.weights.value @ x).sum(1).view(batch, self.out_size) + self.bias.value.view(self.out_size)
+        return x @ self.weights.value + self.bias.value.view(self.out_size)
 
 
 model = Network()
