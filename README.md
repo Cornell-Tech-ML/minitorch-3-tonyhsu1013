@@ -23,6 +23,8 @@ Several of the tests for this assignment will only run if you are on a GPU machi
 run on github's test infrastructure. Please follow the instructions to setup up a colab machine
 to run these tests.
 
+***Task 3.1***
+
 ***Task 3.5***
 
 **Simple**
@@ -118,4 +120,9 @@ Epoch  210  loss  0.0010900340255372337 correct 50 time 0.033341169357299805
 Epoch  220  loss  0.0009229842464784575 correct 50 time 0.03003978729248047
 Epoch  230  loss  0.0007533190415724576 correct 50 time 0.02795100212097168
 Epoch  240  loss  0.0006387156567613116 correct 50 time 0.03471946716308594
+```
+
+- Recording the epoch time for `python run_fast_tensor.py --BACKEND gpu --HIDDEN 100 --DATASET split --RATE 0.05`:
+```
+
 ```
