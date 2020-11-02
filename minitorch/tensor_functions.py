@@ -5,7 +5,7 @@ Implementation of the autodifferentiation Functions for Tensor.
 
 from .autodiff import FunctionBase
 from .tensor_ops import TensorOps
-from .fast_ops import FastOps
+from .fast_ops import FastOps # noqa
 import numpy as np
 from . import operators
 from .tensor import Tensor
@@ -272,9 +272,13 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
             def backward(ctx, grad_output):
                 def transpose_matrix(matrix):
                     dimension_order = list(range(matrix.dims))
-                    dimension_order[-1], dimension_order[-2] = dimension_order[-2], dimension_order[-1]
+                    dimension_order[-1], dimension_order[-2] = (
+                        dimension_order[-2],
+                        dimension_order[-1],
+                    )
                     new_matrix = matrix.permute(*dimension_order)
                     return new_matrix
+
                 t1, t2 = ctx.saved_values
 
                 return (

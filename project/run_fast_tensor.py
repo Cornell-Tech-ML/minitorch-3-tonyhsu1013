@@ -75,6 +75,7 @@ class Linear(minitorch.Module):
     def forward(self, x):
         # TODO: Implement for Task 3.5.
         batch, in_size = x.shape
+        # Matric multiplication
         return x @ self.weights.value + self.bias.value.view(1, self.out_size)
 
 

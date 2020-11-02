@@ -24,6 +24,163 @@ run on github's test infrastructure. Please follow the instructions to setup up 
 to run these tests.
 
 ***Task 3.1***
+```
+================================================================================
+ Parallel Accelerator Optimizing:  Function tensor_map.<locals>._map,
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (40)  
+================================================================================
+
+
+Parallel loop listing for  Function tensor_map.<locals>._map, /content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (40)
+--------------------------------------------------------------------------------|loop #ID
+    def _map(out, out_shape, out_strides, in_storage, in_shape, in_strides):    |
+        # TODO: Implement for Task 3.1.                                         |
+        for i in prange(len(out)):----------------------------------------------| #0
+            out_index = np.empty(MAX_DIMS, np.int32)                            |
+            in_index = np.empty(MAX_DIMS, np.int32)                             |
+            count(int(i), out_shape, out_index)                                 |
+            broadcast_index(out_index, out_shape, in_shape, in_index)           |
+            o = index_to_position(out_index, out_strides)                       |
+            j = index_to_position(in_index, in_strides)                         |
+            out[o] = fn(in_storage[j])                                          |
+--------------------------------- Fusing loops ---------------------------------
+Attempting fusion of parallel loops (combines loops with similar properties)...
+Following the attempted fusion of parallel for-loops there are 1 parallel for-
+loop(s) (originating from loops labelled: #0).
+--------------------------------------------------------------------------------
+----------------------------- Before Optimisation ------------------------------
+--------------------------------------------------------------------------------
+------------------------------ After Optimisation ------------------------------
+Parallel structure is already optimal.
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+---------------------------Loop invariant code motion---------------------------
+Allocation hoisting:
+The memory allocation derived from the instruction at
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (43) is hoisted out of
+the parallel loop labelled #0 (it will be performed before the loop is executed
+and reused inside the loop):
+   Allocation:: out_index = np.empty(MAX_DIMS, np.int32)
+    - numpy.empty() is used for the allocation.
+The memory allocation derived from the instruction at
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (44) is hoisted out of
+the parallel loop labelled #0 (it will be performed before the loop is executed
+and reused inside the loop):
+   Allocation:: in_index = np.empty(MAX_DIMS, np.int32)
+    - numpy.empty() is used for the allocation.
+None
+ZIP
+
+================================================================================
+ Parallel Accelerator Optimizing:  Function tensor_zip.<locals>._zip,
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (107)  
+================================================================================
+
+
+Parallel loop listing for  Function tensor_zip.<locals>._zip, /content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (107)
+-----------------------------------------------------------------------|loop #ID
+    def _zip(                                                          |
+        out,                                                           |
+        out_shape,                                                     |
+        out_strides,                                                   |
+        a_storage,                                                     |
+        a_shape,                                                       |
+        a_strides,                                                     |
+        b_storage,                                                     |
+        b_shape,                                                       |
+        b_strides,                                                     |
+    ):                                                                 |
+        # TODO: Implement for Task 3.1.                                |
+        for i in prange(len(out)):-------------------------------------| #1
+            out_index = np.empty(MAX_DIMS, np.int32)                   |
+            a_index = np.empty(MAX_DIMS, np.int32)                     |
+            b_index = np.empty(MAX_DIMS, np.int32)                     |
+            count(int(i), out_shape, out_index)                        |
+            o = index_to_position(out_index, out_strides)              |
+            broadcast_index(out_index, out_shape, a_shape, a_index)    |
+            j = index_to_position(a_index, a_strides)                  |
+            broadcast_index(out_index, out_shape, b_shape, b_index)    |
+            k = index_to_position(b_index, b_strides)                  |
+            out[o] = fn(a_storage[j], b_storage[k])                    |
+--------------------------------- Fusing loops ---------------------------------
+Attempting fusion of parallel loops (combines loops with similar properties)...
+Following the attempted fusion of parallel for-loops there are 1 parallel for-
+loop(s) (originating from loops labelled: #1).
+--------------------------------------------------------------------------------
+----------------------------- Before Optimisation ------------------------------
+--------------------------------------------------------------------------------
+------------------------------ After Optimisation ------------------------------
+Parallel structure is already optimal.
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+---------------------------Loop invariant code motion---------------------------
+Allocation hoisting:
+The memory allocation derived from the instruction at
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (120) is hoisted out of
+the parallel loop labelled #1 (it will be performed before the loop is executed
+and reused inside the loop):
+   Allocation:: out_index = np.empty(MAX_DIMS, np.int32)
+    - numpy.empty() is used for the allocation.
+The memory allocation derived from the instruction at
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (121) is hoisted out of
+the parallel loop labelled #1 (it will be performed before the loop is executed
+and reused inside the loop):
+   Allocation:: a_index = np.empty(MAX_DIMS, np.int32)
+    - numpy.empty() is used for the allocation.
+The memory allocation derived from the instruction at
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (122) is hoisted out of
+the parallel loop labelled #1 (it will be performed before the loop is executed
+and reused inside the loop):
+   Allocation:: b_index = np.empty(MAX_DIMS, np.int32)
+    - numpy.empty() is used for the allocation.
+None
+REDUCE
+
+================================================================================
+ Parallel Accelerator Optimizing:  Function tensor_reduce.<locals>._reduce,
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (180)  
+================================================================================
+
+
+Parallel loop listing for  Function tensor_reduce.<locals>._reduce, /content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (180)
+---------------------------------------------------------------|loop #ID
+    def _reduce(                                               |
+        out,                                                   |
+        out_shape,                                             |
+        out_strides,                                           |
+        a_storage,                                             |
+        a_shape,                                               |
+        a_strides,                                             |
+        reduce_shape,                                          |
+        reduce_size,                                           |
+    ):                                                         |
+        # TODO: Implement for Task 3.1.                        |
+        for i in prange(len(out)):-----------------------------| #2
+            out_index = np.empty(MAX_DIMS, np.int32)           |
+            a_index = np.empty(MAX_DIMS, np.int32)             |
+            count(int(i), out_shape, out_index)                |
+            o = index_to_position(out_index, out_strides)      |
+                                                               |
+            for s in range(reduce_size):                       |
+                count(s, reduce_shape, a_index)                |
+                for k in range(len(reduce_shape)):             |
+                    if reduce_shape[k] != 1:                   |
+                        out_index[k] = a_index[k]              |
+                j = index_to_position(out_index, a_strides)    |
+                out[o] = fn(out[o], a_storage[j])              |
+--------------------------------- Fusing loops ---------------------------------
+Attempting fusion of parallel loops (combines loops with similar properties)...
+Following the attempted fusion of parallel for-loops there are 1 parallel for-
+loop(s) (originating from loops labelled: #2).
+--------------------------------------------------------------------------------
+----------------------------- Before Optimisation ------------------------------
+--------------------------------------------------------------------------------
+------------------------------ After Optimisation ------------------------------
+Parallel structure is already optimal.
+--------------------------------------------------------------------------------
+```
 
 ***Task 3.5***
 
@@ -124,5 +281,58 @@ Epoch  240  loss  0.0006387156567613116 correct 50 time 0.03471946716308594
 
 - Recording the epoch time for `python run_fast_tensor.py --BACKEND gpu --HIDDEN 100 --DATASET split --RATE 0.05`:
 ```
+Epoch  0  loss  -9.871195303011403e-07 correct 31 time 2.3442234992980957
+Epoch  10  loss  -9.999285103304579e-07 correct 31 time 0.388397216796875
+Epoch  20  loss  6.672067926094724 correct 18 time 0.38930177688598633
+Epoch  30  loss  2.0881262639432743e-05 correct 31 time 0.449446439743042
+Epoch  40  loss  4.1479326677150256e-05 correct 31 time 0.37870097160339355
+Epoch  50  loss  0.00037779977116788926 correct 34 time 0.38972020149230957
+Epoch  60  loss  0.003947679532732116 correct 42 time 0.3974928855895996
+Epoch  70  loss  0.030616969438242773 correct 46 time 0.3894662857055664
+Epoch  80  loss  0.03552306435619996 correct 46 time 0.3884718418121338
+Epoch  90  loss  0.03083828396708433 correct 46 time 0.4010143280029297
+Epoch  100  loss  0.04220570824883119 correct 49 time 0.39063072204589844
+Epoch  110  loss  0.056591461965939574 correct 49 time 0.382082462310791
+Epoch  120  loss  0.061089636983593446 correct 50 time 0.377410888671875
+Epoch  130  loss  0.0570645799183011 correct 50 time 0.37247610092163086
+Epoch  140  loss  0.05081222619848155 correct 50 time 0.37886643409729004
+Epoch  150  loss  0.04641176123708595 correct 50 time 0.3839132785797119
+Epoch  160  loss  0.04214410544019111 correct 50 time 0.3876643180847168
+Epoch  170  loss  0.03772532427564381 correct 50 time 0.38230037689208984
+Epoch  180  loss  0.034205663740766265 correct 50 time 0.39067888259887695
+Epoch  190  loss  0.03139183645623225 correct 50 time 0.3804357051849365
+Epoch  200  loss  0.029327045303163674 correct 50 time 0.3911757469177246
+Epoch  210  loss  0.02723704171711271 correct 50 time 0.38416266441345215
+Epoch  220  loss  0.02536325896641179 correct 50 time 0.3919677734375
+Epoch  230  loss  0.02372225746140871 correct 50 time 0.39301586151123047
+Epoch  240  loss  0.022402632979645447 correct 50 time 0.392409086227417
+```
 
+- Recording the epoch time for `python run_fast_tensor.py --BACKEND cpu --HIDDEN 100 --DATASET split --RATE 0.05`:
+```
+Epoch  0  loss  12.446941016662684 correct 19 time 12.819648265838623
+Epoch  10  loss  4.664539502157333 correct 27 time 0.15499162673950195
+Epoch  20  loss  3.286349555973924 correct 31 time 0.15575909614562988
+Epoch  30  loss  1.0694943430125978 correct 42 time 0.16523432731628418
+Epoch  40  loss  0.28499648034820624 correct 46 time 0.15987133979797363
+Epoch  50  loss  0.19919679788061934 correct 47 time 0.15302491188049316
+Epoch  60  loss  0.1275999580347855 correct 47 time 0.15589261054992676
+Epoch  70  loss  0.08831214278199935 correct 48 time 0.16037297248840332
+Epoch  80  loss  0.07147536249800637 correct 49 time 0.16426324844360352
+Epoch  90  loss  0.06375651262120892 correct 50 time 0.15483736991882324
+Epoch  100  loss  0.05887939943867837 correct 50 time 0.16170310974121094
+Epoch  110  loss  0.05476213714700768 correct 50 time 0.16162753105163574
+Epoch  120  loss  0.05135801888699533 correct 50 time 0.15684103965759277
+Epoch  130  loss  0.04869571177864549 correct 50 time 0.15863251686096191
+Epoch  140  loss  0.04576760459426284 correct 50 time 0.16192412376403809
+Epoch  150  loss  0.04345261576847775 correct 50 time 0.15573740005493164
+Epoch  160  loss  0.041140774558251644 correct 50 time 0.1585988998413086
+Epoch  170  loss  0.03857495896211244 correct 50 time 0.15265417098999023
+Epoch  180  loss  0.03623851172668023 correct 50 time 0.15684080123901367
+Epoch  190  loss  0.03416137449374978 correct 50 time 0.15960979461669922
+Epoch  200  loss  0.0323041344135353 correct 50 time 0.15676355361938477
+Epoch  210  loss  0.030614395569218838 correct 50 time 0.15711426734924316
+Epoch  220  loss  0.029708564381423497 correct 50 time 0.1600799560546875
+Epoch  230  loss  0.027891992720583028 correct 50 time 0.15906667709350586
+Epoch  240  loss  0.027249610321634817 correct 50 time 0.1595613956451416
 ```

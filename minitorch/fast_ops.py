@@ -36,14 +36,19 @@ def tensor_map(fn):
     Returns:
         None : Fills in `out`
     """
-    #fn = njit()(fn)
+    # fn = njit()(fn)
     def _map(out, out_shape, out_strides, in_storage, in_shape, in_strides):
         # TODO: Implement for Task 3.1.
         for i in prange(len(out)):
+            # Create the indices
             out_index = np.empty(MAX_DIMS, np.int32)
             in_index = np.empty(MAX_DIMS, np.int32)
+
+            # Figure out current index
             count(int(i), out_shape, out_index)
             broadcast_index(out_index, out_shape, in_shape, in_index)
+
+            # Map input into output
             o = index_to_position(out_index, out_strides)
             j = index_to_position(in_index, in_strides)
             out[o] = fn(in_storage[j])
@@ -117,15 +122,20 @@ def tensor_zip(fn):
     ):
         # TODO: Implement for Task 3.1.
         for i in prange(len(out)):
+            # Create the indices
             out_index = np.empty(MAX_DIMS, np.int32)
             a_index = np.empty(MAX_DIMS, np.int32)
             b_index = np.empty(MAX_DIMS, np.int32)
+
+            # Figure out the output position and corresponding input positions
             count(int(i), out_shape, out_index)
             o = index_to_position(out_index, out_strides)
             broadcast_index(out_index, out_shape, a_shape, a_index)
             j = index_to_position(a_index, a_strides)
             broadcast_index(out_index, out_shape, b_shape, b_index)
             k = index_to_position(b_index, b_strides)
+
+            # Peform zip function with inputs
             out[o] = fn(a_storage[j], b_storage[k])
 
     return njit(parallel=True)(_zip)
@@ -189,17 +199,24 @@ def tensor_reduce(fn):
     ):
         # TODO: Implement for Task 3.1.
         for i in prange(len(out)):
+            # Create indices
             out_index = np.empty(MAX_DIMS, np.int32)
             a_index = np.empty(MAX_DIMS, np.int32)
+            # Get the current index
             count(int(i), out_shape, out_index)
             o = index_to_position(out_index, out_strides)
 
+            # Iterating through the dimension we're reducing
             for s in range(reduce_size):
+                # Figure out the position we're reducing in this iteration
                 count(s, reduce_shape, a_index)
+                # Reducing by going over the dimension we're not reducing
                 for k in range(len(reduce_shape)):
                     if reduce_shape[k] != 1:
                         out_index[k] = a_index[k]
+                # Map to corresponding position in the storage
                 j = index_to_position(out_index, a_strides)
+                # Reduce at the position by aggregating the function
                 out[o] = fn(out[o], a_storage[j])
 
     return njit(parallel=True)(_reduce)
@@ -297,27 +314,35 @@ def tensor_matrix_multiply(
     """
 
     # TODO: Implement for Task 3.2.
+    # Figure out how many dimensions there are in each tensors
     a_num_positions = len(a_shape)
     b_num_positions = len(b_shape)
     out_num_positions = len(out_shape)
     for i in prange(len(out)):
+        # Create the indices
         out_index = np.empty(MAX_DIMS, np.int32)
         a_index = np.empty(MAX_DIMS, np.int32)
         b_index = np.empty(MAX_DIMS, np.int32)
+        # Get the current indices
         count(int(i), out_shape, out_index)
         o = index_to_position(out_index, out_strides)
 
+        # Figure out input indices from the corresponding output
         broadcast_index(out_index, out_shape, a_shape, a_index)
         broadcast_index(out_index, out_shape, b_shape, b_index)
-        a_index[a_num_positions-2] = out_index[out_num_positions-2]
-        b_index[b_num_positions-1] = out_index[out_num_positions-1]
+        # Fix a position from output that we're multiplying by
+        a_index[a_num_positions - 2] = out_index[out_num_positions - 2]
+        b_index[b_num_positions - 1] = out_index[out_num_positions - 1]
+        # Iterating through dimension from input that we're multiplying by
         for s in range(a_shape[-1]):
-            a_index[a_num_positions-1] = s
-            b_index[b_num_positions-2] = s
+            # Get the current position from iterating through the dimension
+            a_index[a_num_positions - 1] = s
+            b_index[b_num_positions - 2] = s
+            # Map to the input storage
             j = index_to_position(a_index, a_strides)
             k = index_to_position(b_index, b_strides)
+            # Reduce part as we're summing
             out[o] += a_storage[j] * b_storage[k]
-
 
 
 def matrix_multiply(a, b):
