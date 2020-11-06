@@ -333,6 +333,8 @@ def tensor_matrix_multiply(
         # Fix a position from output that we're multiplying by
         a_index[a_num_positions - 2] = out_index[out_num_positions - 2]
         b_index[b_num_positions - 1] = out_index[out_num_positions - 1]
+
+        temp = 0
         # Iterating through dimension from input that we're multiplying by
         for s in range(a_shape[-1]):
             # Get the current position from iterating through the dimension
@@ -342,7 +344,8 @@ def tensor_matrix_multiply(
             j = index_to_position(a_index, a_strides)
             k = index_to_position(b_index, b_strides)
             # Reduce part as we're summing
-            out[o] += a_storage[j] * b_storage[k]
+            temp += a_storage[j] * b_storage[k]
+        out[o] += temp
 
 
 def matrix_multiply(a, b):
