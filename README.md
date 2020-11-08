@@ -206,6 +206,7 @@ Parallel structure is already optimal.
 
 **Simple**
 <img src="simple.png" >
+<img src="simple_2.png" >
 
 ```
 Epoch  0  loss  0.8115374843272172 correct 26 time 11.625386714935303
@@ -238,6 +239,7 @@ Epoch  240  loss  0.02780764153777651 correct 50 time 0.022687673568725586
 **Split**
 
 <img src="split.png" >
+<img src="split_2.png" >
 
 ```
 Epoch  0  loss  8.253892259327907 correct 21 time 11.43214225769043
@@ -270,6 +272,7 @@ Epoch  240  loss  0.0008733129988689726 correct 49 time 0.02837848663330078
 **Xor**
 
 <img src="xor.png" >
+<img src="xor_2.png" >
 
 ```
 Epoch  0  loss  1.4911400142885405 correct 24 time 11.389892339706421
