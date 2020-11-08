@@ -36,10 +36,15 @@ Parallel loop listing for  Function tensor_map.<locals>._map, /content/minitorch
     def _map(out, out_shape, out_strides, in_storage, in_shape, in_strides):    |
         # TODO: Implement for Task 3.1.                                         |
         for i in prange(len(out)):----------------------------------------------| #0
+            # Create the indices                                                |
             out_index = np.empty(MAX_DIMS, np.int32)                            |
             in_index = np.empty(MAX_DIMS, np.int32)                             |
+                                                                                |
+            # Figure out current index                                          |
             count(int(i), out_shape, out_index)                                 |
             broadcast_index(out_index, out_shape, in_shape, in_index)           |
+                                                                                |
+            # Map input into output                                             |
             o = index_to_position(out_index, out_strides)                       |
             j = index_to_position(in_index, in_strides)                         |
             out[o] = fn(in_storage[j])                                          |
@@ -58,13 +63,13 @@ Parallel structure is already optimal.
 ---------------------------Loop invariant code motion---------------------------
 Allocation hoisting:
 The memory allocation derived from the instruction at
-/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (43) is hoisted out of
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (44) is hoisted out of
 the parallel loop labelled #0 (it will be performed before the loop is executed
 and reused inside the loop):
    Allocation:: out_index = np.empty(MAX_DIMS, np.int32)
     - numpy.empty() is used for the allocation.
 The memory allocation derived from the instruction at
-/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (44) is hoisted out of
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (45) is hoisted out of
 the parallel loop labelled #0 (it will be performed before the loop is executed
 and reused inside the loop):
    Allocation:: in_index = np.empty(MAX_DIMS, np.int32)
@@ -74,35 +79,40 @@ ZIP
 
 ================================================================================
  Parallel Accelerator Optimizing:  Function tensor_zip.<locals>._zip,
-/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (107)  
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (112)  
 ================================================================================
 
 
-Parallel loop listing for  Function tensor_zip.<locals>._zip, /content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (107)
------------------------------------------------------------------------|loop #ID
-    def _zip(                                                          |
-        out,                                                           |
-        out_shape,                                                     |
-        out_strides,                                                   |
-        a_storage,                                                     |
-        a_shape,                                                       |
-        a_strides,                                                     |
-        b_storage,                                                     |
-        b_shape,                                                       |
-        b_strides,                                                     |
-    ):                                                                 |
-        # TODO: Implement for Task 3.1.                                |
-        for i in prange(len(out)):-------------------------------------| #1
-            out_index = np.empty(MAX_DIMS, np.int32)                   |
-            a_index = np.empty(MAX_DIMS, np.int32)                     |
-            b_index = np.empty(MAX_DIMS, np.int32)                     |
-            count(int(i), out_shape, out_index)                        |
-            o = index_to_position(out_index, out_strides)              |
-            broadcast_index(out_index, out_shape, a_shape, a_index)    |
-            j = index_to_position(a_index, a_strides)                  |
-            broadcast_index(out_index, out_shape, b_shape, b_index)    |
-            k = index_to_position(b_index, b_strides)                  |
-            out[o] = fn(a_storage[j], b_storage[k])                    |
+Parallel loop listing for  Function tensor_zip.<locals>._zip, /content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (112)
+----------------------------------------------------------------------------------|loop #ID
+    def _zip(                                                                     |
+        out,                                                                      |
+        out_shape,                                                                |
+        out_strides,                                                              |
+        a_storage,                                                                |
+        a_shape,                                                                  |
+        a_strides,                                                                |
+        b_storage,                                                                |
+        b_shape,                                                                  |
+        b_strides,                                                                |
+    ):                                                                            |
+        # TODO: Implement for Task 3.1.                                           |
+        for i in prange(len(out)):------------------------------------------------| #1
+            # Create the indices                                                  |
+            out_index = np.empty(MAX_DIMS, np.int32)                              |
+            a_index = np.empty(MAX_DIMS, np.int32)                                |
+            b_index = np.empty(MAX_DIMS, np.int32)                                |
+                                                                                  |
+            # Figure out the output position and corresponding input positions    |
+            count(int(i), out_shape, out_index)                                   |
+            o = index_to_position(out_index, out_strides)                         |
+            broadcast_index(out_index, out_shape, a_shape, a_index)               |
+            j = index_to_position(a_index, a_strides)                             |
+            broadcast_index(out_index, out_shape, b_shape, b_index)               |
+            k = index_to_position(b_index, b_strides)                             |
+                                                                                  |
+            # Peform zip function with inputs                                     |
+            out[o] = fn(a_storage[j], b_storage[k])                               |
 --------------------------------- Fusing loops ---------------------------------
 Attempting fusion of parallel loops (combines loops with similar properties)...
 Following the attempted fusion of parallel for-loops there are 1 parallel for-
@@ -118,19 +128,19 @@ Parallel structure is already optimal.
 ---------------------------Loop invariant code motion---------------------------
 Allocation hoisting:
 The memory allocation derived from the instruction at
-/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (120) is hoisted out of
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (126) is hoisted out of
 the parallel loop labelled #1 (it will be performed before the loop is executed
 and reused inside the loop):
    Allocation:: out_index = np.empty(MAX_DIMS, np.int32)
     - numpy.empty() is used for the allocation.
 The memory allocation derived from the instruction at
-/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (121) is hoisted out of
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (127) is hoisted out of
 the parallel loop labelled #1 (it will be performed before the loop is executed
 and reused inside the loop):
    Allocation:: a_index = np.empty(MAX_DIMS, np.int32)
     - numpy.empty() is used for the allocation.
 The memory allocation derived from the instruction at
-/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (122) is hoisted out of
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (128) is hoisted out of
 the parallel loop labelled #1 (it will be performed before the loop is executed
 and reused inside the loop):
    Allocation:: b_index = np.empty(MAX_DIMS, np.int32)
@@ -140,36 +150,43 @@ REDUCE
 
 ================================================================================
  Parallel Accelerator Optimizing:  Function tensor_reduce.<locals>._reduce,
-/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (180)  
+/content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (190)  
 ================================================================================
 
 
-Parallel loop listing for  Function tensor_reduce.<locals>._reduce, /content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (180)
----------------------------------------------------------------|loop #ID
-    def _reduce(                                               |
-        out,                                                   |
-        out_shape,                                             |
-        out_strides,                                           |
-        a_storage,                                             |
-        a_shape,                                               |
-        a_strides,                                             |
-        reduce_shape,                                          |
-        reduce_size,                                           |
-    ):                                                         |
-        # TODO: Implement for Task 3.1.                        |
-        for i in prange(len(out)):-----------------------------| #2
-            out_index = np.empty(MAX_DIMS, np.int32)           |
-            a_index = np.empty(MAX_DIMS, np.int32)             |
-            count(int(i), out_shape, out_index)                |
-            o = index_to_position(out_index, out_strides)      |
-                                                               |
-            for s in range(reduce_size):                       |
-                count(s, reduce_shape, a_index)                |
-                for k in range(len(reduce_shape)):             |
-                    if reduce_shape[k] != 1:                   |
-                        out_index[k] = a_index[k]              |
-                j = index_to_position(out_index, a_strides)    |
-                out[o] = fn(out[o], a_storage[j])              |
+Parallel loop listing for  Function tensor_reduce.<locals>._reduce, /content/minitorch-3-tonyhsu1013/minitorch/fast_ops.py (190)
+------------------------------------------------------------------------------|loop #ID
+    def _reduce(                                                              |
+        out,                                                                  |
+        out_shape,                                                            |
+        out_strides,                                                          |
+        a_storage,                                                            |
+        a_shape,                                                              |
+        a_strides,                                                            |
+        reduce_shape,                                                         |
+        reduce_size,                                                          |
+    ):                                                                        |
+        # TODO: Implement for Task 3.1.                                       |
+        for i in prange(len(out)):--------------------------------------------| #2
+            # Create indices                                                  |
+            out_index = np.empty(MAX_DIMS, np.int32)                          |
+            a_index = np.empty(MAX_DIMS, np.int32)                            |
+            # Get the current index                                           |
+            count(int(i), out_shape, out_index)                               |
+            o = index_to_position(out_index, out_strides)                     |
+                                                                              |
+            # Iterating through the dimension we're reducing                  |
+            for s in range(reduce_size):                                      |
+                # Figure out the position we're reducing in this iteration    |
+                count(s, reduce_shape, a_index)                               |
+                # Reducing by going over the dimension we're not reducing     |
+                for k in range(len(reduce_shape)):                            |
+                    if reduce_shape[k] != 1:                                  |
+                        out_index[k] = a_index[k]                             |
+                # Map to corresponding position in the storage                |
+                j = index_to_position(out_index, a_strides)                   |
+                # Reduce at the position by aggregating the function          |
+                out[o] = fn(out[o], a_storage[j])                             |
 --------------------------------- Fusing loops ---------------------------------
 Attempting fusion of parallel loops (combines loops with similar properties)...
 Following the attempted fusion of parallel for-loops there are 1 parallel for-
@@ -180,6 +197,9 @@ loop(s) (originating from loops labelled: #2).
 ------------------------------ After Optimisation ------------------------------
 Parallel structure is already optimal.
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+---------------------------Loop invariant code motion---------------------------
 ```
 
 ***Task 3.5***
