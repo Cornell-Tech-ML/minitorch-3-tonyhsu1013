@@ -166,7 +166,9 @@ class Tensor(Variable):
             return buf
 
         buf2 = self.zeros(self.shape)
-        self.backend._add_reduce(buf, out=buf2)
+        # START CODE CHANGE
+        buf2 = self.backend._add_reduce(buf, out=buf2)
+        # END CODE CHANGE
         return buf2
 
     def zeros(self, shape=None):

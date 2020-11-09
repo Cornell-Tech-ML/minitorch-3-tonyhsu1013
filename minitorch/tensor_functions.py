@@ -5,6 +5,7 @@ Implementation of the autodifferentiation Functions for Tensor.
 
 from .autodiff import FunctionBase
 from .tensor_ops import TensorOps
+from .fast_ops import FastOps # noqa
 import numpy as np
 from . import operators
 from .tensor import Tensor
@@ -95,47 +96,70 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
         class Mul(Function):
             @staticmethod
             def forward(ctx, a, b):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.2.
+                ctx.save_for_backward(a, b)
+                return mul_zip(a, b)
 
             @staticmethod
             def backward(ctx, grad_output):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.3.
+                a, b = ctx.saved_values
+                return mul_zip(b, grad_output), mul_zip(a, grad_output)
 
         class Sigmoid(Function):
             @staticmethod
             def forward(ctx, a):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.2.
+                out = sigmoid_map(a)
+                ctx.save_for_backward(out)
+                return out
 
             @staticmethod
             def backward(ctx, grad_output):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.3.
+                sigma = ctx.saved_values
+                return sigma * (-sigma + 1.0) * grad_output
 
         class ReLU(Function):
             @staticmethod
             def forward(ctx, a):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.2.
+                ctx.save_for_backward(a)
+                return relu_map(a)
 
             @staticmethod
             def backward(ctx, grad_output):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.3.
+                a = ctx.saved_values
+                return relu_back_zip(a, grad_output)
 
         class Log(Function):
             @staticmethod
             def forward(ctx, a):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.2.
+                ctx.save_for_backward(a)
+                out = log_map(a)
+                return out
 
             @staticmethod
             def backward(ctx, grad_output):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.3.
+                a = ctx.saved_values
+                return log_back_zip(a, grad_output)
 
         class Exp(Function):
             @staticmethod
             def forward(ctx, a):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.2.
+                out = exp_map(a)
+                ctx.save_for_backward(out)
+                return out
 
             @staticmethod
             def backward(ctx, grad_output):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.3.
+                a = ctx.saved_values
+                return mul_zip(a, grad_output)
 
         class Sum(Function):
             @staticmethod
@@ -161,44 +185,65 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
         class Mean(Function):
             @staticmethod
             def forward(ctx, a, dim):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.2.
+                if dim is not None:
+                    ctx.save_for_backward(a.shape[dim])
+                    return add_reduce(a, [dim]) / a.shape[dim]
+                else:
+                    ctx.save_for_backward(a.size)
+                    return add_reduce(a, list(range(a.dims))).view(1) / a.size
 
             @staticmethod
             def backward(ctx, grad_output):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.3.
+                a = ctx.saved_values
+                return grad_output / a
 
         class LT(Function):
             @staticmethod
             def forward(ctx, a, b):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.2.
+                ctx.save_for_backward(a.shape, b.shape)
+                return lt_zip(a, b)
 
             @staticmethod
             def backward(ctx, grad_output):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.3.
+                a_shape, b_shape = ctx.saved_values
+                return zeros(a_shape), zeros(b_shape)
 
         class EQ(Function):
             @staticmethod
             def forward(ctx, a, b):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.2.
+                ctx.save_for_backward(a.shape, b.shape)
+                return eq_zip(a, b)
 
             @staticmethod
             def backward(ctx, grad_output):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.3.
+                a_shape, b_shape = ctx.saved_values
+                return zeros(a_shape), zeros(b_shape)
 
         class Permute(Function):
             @staticmethod
             def forward(ctx, a, order):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.2.
+                ctx.save_for_backward(order)
+                return a._new(a._tensor.permute(*order))
 
             @staticmethod
             def backward(ctx, grad_output):
-                raise NotImplementedError('Need to include this file from past assignment.')
+                # TODO: Implement for Task 2.3.
+                order = ctx.saved_values
+                order = [a[0] for a in sorted(enumerate(order), key=lambda a: a[1])]
+                return grad_output._new(grad_output._tensor.permute(*order))
 
         class View(Function):
             @staticmethod
             def forward(ctx, a, shape):
                 ctx.save_for_backward(a.shape)
-                assert a._tensor.is_contiguous(), "Must be contiguous to view"
+                assert a._tensor.is_contiguous, "Must be contiguous to view"
                 return Tensor.make(a._tensor._storage, shape, backend=a.backend)
 
             @staticmethod
@@ -225,16 +270,20 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
 
             @staticmethod
             def backward(ctx, grad_output):
+                def transpose_matrix(matrix):
+                    dimension_order = list(range(matrix.dims))
+                    dimension_order[-1], dimension_order[-2] = (
+                        dimension_order[-2],
+                        dimension_order[-1],
+                    )
+                    new_matrix = matrix.permute(*dimension_order)
+                    return new_matrix
+
                 t1, t2 = ctx.saved_values
 
-                def transpose(a):
-                    order = list(range(a.dims))
-                    order[-2], order[-1] = order[-1], order[-2]
-                    return a.permute(*order)
-
                 return (
-                    tensor_ops.matrix_multiply(grad_output, transpose(t2)),
-                    tensor_ops.matrix_multiply(transpose(t1), grad_output),
+                    tensor_ops.matrix_multiply(grad_output, transpose_matrix(t2)),
+                    tensor_ops.matrix_multiply(transpose_matrix(t1), grad_output),
                 )
 
     return Backend

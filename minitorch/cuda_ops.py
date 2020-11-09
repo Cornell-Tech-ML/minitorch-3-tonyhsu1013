@@ -42,7 +42,23 @@ def tensor_map(fn):
 
     def _map(out, out_shape, out_strides, out_size, in_storage, in_shape, in_strides):
         # TODO: Implement for Task 3.3.
-        raise NotImplementedError('Need to implement for Task 3.3')
+        # Find my position.
+        x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+
+        # Create the indices
+        out_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+        in_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+
+        if x < out_size:
+            # Get the current index
+            count(int(x), out_shape, out_index)
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+
+            # Find position in storage
+            o = index_to_position(out_index, out_strides)
+            j = index_to_position(in_index, in_strides)
+            # Perform the map function
+            out[o] = fn(in_storage[j])
 
     return cuda.jit()(_map)
 
@@ -101,7 +117,27 @@ def tensor_zip(fn):
         b_strides,
     ):
         # TODO: Implement for Task 3.3.
-        raise NotImplementedError('Need to implement for Task 3.3')
+        # Find thread position
+        x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+
+        # Create the indices
+        out_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+        a_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+        b_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+
+        if x < out_size:
+            # Get the current index
+            count(int(x), out_shape, out_index)
+
+            # Get position in the storage
+            o = index_to_position(out_index, out_strides)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            j = index_to_position(a_index, a_strides)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            k = index_to_position(b_index, b_strides)
+
+            # Perform the zip function
+            out[o] = fn(a_storage[j], b_storage[k])
 
     return cuda.jit()(_zip)
 
@@ -154,7 +190,29 @@ def tensor_reduce(fn):
         reduce_size,
     ):
         # TODO: Implement for Task 3.3.
-        raise NotImplementedError('Need to implement for Task 3.3')
+        # Find thread position
+        x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+
+        # Create indices array
+        out_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+        a_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+
+        if x < out_size:
+            # Get the current indices
+            count(x, out_shape, out_index)
+            o = index_to_position(out_index, out_strides)
+            # Iterating through the dimension we're reducing
+            for s in range(reduce_size):
+                # Figure out the position we're reducing in this iteration
+                count(s, reduce_shape, a_index)
+                # Reducing by going over the dimension we're not reducing
+                for k in range(len(reduce_shape)):
+                    if reduce_shape[k] != 1:
+                        out_index[k] = a_index[k]
+                # Map to corresponding position in the storage
+                j = index_to_position(out_index, a_strides)
+                # Reduce at the position by aggregating the function
+                out[o] = fn(out[o], a_storage[j])
 
     return cuda.jit()(_reduce)
 
@@ -195,6 +253,10 @@ def reduce(fn, start=0.0):
         f[blockspergrid, threadsperblock](
             *out.tuple(), out.size, *a.tuple(), np.array(reduce_shape), reduce_size
         )
+        # START CODE CHANGE
+        if old_shape is not None:
+            out = out.view(*old_shape)
+        # END CODE CHANGE
         return out
 
     return ret
@@ -237,7 +299,43 @@ def tensor_matrix_multiply(
     """
 
     # TODO: Implement for Task 3.4.
-    raise NotImplementedError('Need to implement for Task 3.4')
+    # Find thread position
+    x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+
+    if x < out_size:
+        # Figure out how many dimensions there are in each tensors
+        a_num_positions = len(a_shape)
+        b_num_positions = len(b_shape)
+        out_num_positions = len(out_shape)
+
+        # Create the indices
+        out_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+        a_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+        b_index = cuda.local.array(MAX_DIMS, dtype=numba.int32)
+
+        # Find the current index
+        count(x, out_shape, out_index)
+        o = index_to_position(out_index, out_strides)
+
+        # Figure out input indices from the corresponding output
+        broadcast_index(out_index, out_shape, a_shape, a_index)
+        broadcast_index(out_index, out_shape, b_shape, b_index)
+        # Fix a position from output that we're multiplying by
+        a_index[a_num_positions - 2] = out_index[out_num_positions - 2]
+        b_index[b_num_positions - 1] = out_index[out_num_positions - 1]
+
+        temp = 0
+        # Iterating through dimension from input that we're multiplying by
+        for s in range(a_shape[-1]):
+            # Get the current position from iterating through the dimension
+            a_index[a_num_positions - 1] = s
+            b_index[b_num_positions - 2] = s
+            # Map to the input storage
+            j = index_to_position(a_index, a_strides)
+            k = index_to_position(b_index, b_strides)
+            # Reduce part as we're summing
+            temp += a_storage[j] * b_storage[k]
+        out[o] += temp
 
 
 def matrix_multiply(a, b):
